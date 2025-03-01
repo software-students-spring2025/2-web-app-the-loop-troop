@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <footer class="app-footer">
+        <nav class="bottom-nav">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='nav-icons/home-icon.svg') }}" alt="Home">
+            </a>
+            <a href="">
+                <img src="{{ url_for('static', filename='nav-icons/entries-icon2.svg') }}" alt="Entries">
+            </a>
+            <a href="">
+                <img src="{{ url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="Profile">
+            </a>
+            <a href="">
+                <img src="{{ url_for('static', filename='nav-icons/share-icon.svg') }}" alt="Share">
+            </a>
+            <a href="">
+                <img src="{{ url_for('static', filename='nav-icons/settings-icon.svg') }}" alt="Settings">
+            </a>
+        </nav>
+    </footer>
+    
+    
+</body>
+</html>

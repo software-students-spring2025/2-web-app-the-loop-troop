@@ -38,6 +38,14 @@ def create_app():
         """
         users = db.users.find()  # Fetch users from MongoDB
         return render_template("index.html", users=users)
+    
+    @app.route("/profile")
+    def profile():
+        return render_template("profile.html")
+    
+    @app.route("/profile/stats")
+    def stats():
+        return render_template("stats.html")
 
     
     @app.errorhandler(Exception)

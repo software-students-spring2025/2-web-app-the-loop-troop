@@ -1,0 +1,25 @@
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: white;
+    border-top: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+.bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.bottom-nav a img {
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+.bottom-nav a img:hover {
+    opacity: 1;
+}

@@ -1,7 +1,6 @@
 import os
 import datetime
 from flask import Flask, render_template, request, redirect, url_for
-import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from dotenv import load_dotenv, dotenv_values
@@ -32,7 +31,7 @@ def create_app():
 
     # made global db available
     global db
-    cxn = pymongo.MongoClient(os.getenv("MONGO_URI"))
+    cxn = MongoClient(os.getenv("MONGO_URI"))
     db = cxn[os.getenv("MONGO_DBNAME")]
 
     try:

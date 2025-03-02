@@ -5,7 +5,7 @@ import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from dotenv import load_dotenv, dotenv_values
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager, UserMixin, current_user, login_required
 from auth import auth_bp
 
 load_dotenv(override=True)
@@ -44,12 +44,17 @@ def create_app():
     # Where to redirect if @login_required fails
     loginManager.login_view = "auth.login"
 
+
+    from auth import init_auth
+
     # define a simple User class that extends the imported UserMixin
     class User(UserMixin):
         def __init__(self, _id, username, pswdHash):
             self.id = str(_id)
             self.username = username
             self.pswddHash = pswdHash
+
+    
 
     # USER LOADER
     @loginManager.user_loader
@@ -62,18 +67,20 @@ def create_app():
             username = userDoc["username"],
             pswdHash=userDoc["pswdHash"]
         )
+    init_auth(db, User)
     
     app.register_blueprint(auth_bp) # All routes in auth.py should be active now!
 
     @app.route("/")
     def home():
         """
-        Route for the home page.
-        Returns:
-            rendered template (str): The rendered HTML template.
+        If user is logged in, show their home page (dashboard),
+        else redirect to signup.
         """
-        users = db.users.find()  # Fetch users from MongoDB
-        return render_template("index.html", users=users)
+        if current_user.is_authenticated:
+            return redirect(url_for("auth.dashboard"))
+        else:
+            return redirect(url_for("auth.signup"))
 
     
     @app.errorhandler(Exception)

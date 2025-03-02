@@ -13,7 +13,7 @@ User = None
 def init_auth(db, user_class):
     """Initialize references so we can avoid circular imports"""
     global _db, User
-    db = db
+    _db = db
     User = user_class
 
 @auth_bp.route("/signup", methods=["GET", "POST"])
@@ -32,7 +32,7 @@ def signup():
         # Note: passwords need to be hashed! 
         pswdHash = generate_password_hash(password)
         result = _db.users.insert_one({"username": username, "pswdHash": pswdHash})
-        newId = result.insertedId
+        newId = result.inserted_id
 
         # User object is created here!
         user = User(
@@ -53,7 +53,7 @@ def login():
         password = request.form.get("password")
 
         userDoc = _db.users.find_one({"username": username})
-        if userDoc and check_password_hash(userDoc["password_hash"], password):
+        if userDoc and check_password_hash(userDoc["pswdHash"], password):
             user = User(
                 _id=userDoc["_id"], username=userDoc["username"], pswdHash=userDoc["pswdHash"]
             )

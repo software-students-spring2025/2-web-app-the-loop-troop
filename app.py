@@ -77,11 +77,19 @@ def create_app():
         If user is logged in, show their home page (dashboard),
         else redirect to signup.
         """
+        
         if current_user.is_authenticated:
             return redirect(url_for("auth.dashboard"))
         else:
             return redirect(url_for("auth.signup"))
-
+          
+    @app.route("/profile")
+    def profile():
+        return render_template("profile.html")
+    
+    @app.route("/profile/stats")
+    def stats():
+        return render_template("stats.html")
     
     @app.errorhandler(Exception)
     def handle_error(e):

@@ -4,9 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div>This is the profile page</div>
+
+    <!-- icon div -->
+    <div class="profile-div">
+        <h3>Welcome, user</h3>
+        <img src="{{url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="default profile pic" class="profile-icon">
+
+        <p>
+            you have written 738 entries and 99,876 words
+            <br>
+            since you joined us on March 1, 2020
+
+            <br><br>
+
+            that's an average of 3,728 days spent writing,
+            <br>
+            or 32.8 words a day
+        </p>
+        <div>
+            <h3>stats overview</h3>
+            stats here...
+
+            <a href="{{ url_for('stats')}}">click for more..</a>
+        </div>
+
+       
+    </div> 
+
+
+
     {% include 'footer.html' %}  
 </body>
 </html>

@@ -6,6 +6,9 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from dotenv import load_dotenv, dotenv_values
 
+from helpers.add_entry import add_entry
+from helpers.get_user import get_user
+
 load_dotenv(override=True)
 
 
@@ -29,15 +32,30 @@ def create_app():
     except Exception as e:
         print(" * MongoDB connection error:", e)
 
-    @app.route("/")
+    @app.route("/") # root
     def home():
         """
         Route for the home page.
         Returns:
             rendered template (str): The rendered HTML template.
         """
-        users = db.users.find()  # Fetch users from MongoDB
-        return render_template("index.html", users=users)
+        email = "jane@abc.com"
+        user = get_user(email)
+        username = user["name"] if user and "name" in user else "User"
+        return render_template("journal_entry.html", username=username)
+    
+    @app.route("/submit_entry", methods=["POST"])
+    def submit_entry():
+        """
+        
+        """
+        entry = request.form.get("entry")
+        # return add_entry(entry)
+        add_entry(entry) # CRITICAL
+        email = "jane@abc.com"
+        user = get_user(email)
+        username = user["name"] if user and "name" in user else "User"
+        return render_template("journal_entry.html", submitted=True, username=username)
 
     
     @app.errorhandler(Exception)
@@ -60,5 +78,4 @@ if __name__ == "__main__":
     FLASK_PORT = os.getenv("FLASK_PORT", "5000")
     FLASK_ENV = os.getenv("FLASK_ENV")
     print(f"FLASK_ENV: {FLASK_ENV}, FLASK_PORT: {FLASK_PORT}")
-
-    app.run(port=FLASK_PORT)
+    app.run(debug=True, port=FLASK_PORT)

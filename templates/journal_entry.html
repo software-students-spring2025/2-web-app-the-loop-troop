@@ -2,15 +2,25 @@
 <html>
 <head>
     <title>Welcome to Your Digital Journal!</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
 <body>
-    <h1>Start your entry for today!</h1>
+    <h1>Start your entry for today!</h1>    
     
     <form action="/submit_entry" method="POST">
-        <label for="entry">Your Journal Entry:</label><br>
+        <label for="entry"> Welcome, {{username}}:</label><br>
         <textarea id="entry" name="entry" rows="10" cols="50" placeholder="Write your thoughts here..."></textarea><br>
         <button type="submit">Submit</button>
     </form>
+
+    {% if submitted %}
+    <h3 style="color: green;">Submission Success!</h3>
+    {% endif %}
+
+    {% include 'footer.html' %}  
+
 </body>
+
 </html>
 

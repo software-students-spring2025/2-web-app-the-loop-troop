@@ -8,6 +8,9 @@ from dotenv import load_dotenv, dotenv_values
 from flask_login import LoginManager, UserMixin, current_user, login_required
 from auth import auth_bp
 
+from helpers.add_entry import add_entry
+from helpers.get_user import get_user
+
 load_dotenv(override=True)
 
 # global ref to db
@@ -71,7 +74,7 @@ def create_app():
     
     app.register_blueprint(auth_bp) # All routes in auth.py should be active now!
 
-    @app.route("/")
+    @app.route("/") # root
     def home():
         """
         If user is logged in, show their home page (dashboard),
@@ -82,6 +85,24 @@ def create_app():
             return redirect(url_for("auth.dashboard"))
         else:
             return redirect(url_for("auth.signup"))
+        
+        # email = "jane@abc.com"
+        # user = get_user(email)
+        # username = user["name"] if user and "name" in user else "User"
+        # return render_template("journal_entry.html", username=username)
+    
+    @app.route("/submit_entry", methods=["POST"])
+    def submit_entry():
+        """
+        
+        """
+        entry = request.form.get("entry")
+        # return add_entry(entry)
+        add_entry(entry) # CRITICAL
+        email = "jane@abc.com"
+        user = get_user(email)
+        username = user["name"] if user and "name" in user else "User"
+        return render_template("journal_entry.html", submitted=True, username=username)
           
     @app.route("/profile")
     def profile():
@@ -123,5 +144,4 @@ if __name__ == "__main__":
     FLASK_PORT = os.getenv("FLASK_PORT", "5000")
     FLASK_ENV = os.getenv("FLASK_ENV")
     print(f"FLASK_ENV: {FLASK_ENV}, FLASK_PORT: {FLASK_PORT}")
-
-    app.run(port=FLASK_PORT)
+    app.run(debug=True, port=FLASK_PORT)

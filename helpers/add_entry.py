@@ -1,5 +1,7 @@
 import pymongo
 import os
+from dotenv import load_dotenv
+load_dotenv(override=True) 
 from datetime import datetime, timezone
 import json
 

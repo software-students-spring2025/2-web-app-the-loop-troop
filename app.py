@@ -11,8 +11,7 @@ from auth import auth_bp
 load_dotenv(override=True)
 
 # global ref to db
-_db = None
-
+db = None
 
 def create_app():
     """
@@ -25,6 +24,11 @@ def create_app():
     config = dotenv_values()
     app.config.from_mapping(config)
 
+    # Creating secret key for a session HERE
+    app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-this-in-.env")
+
+    # made global db available
+    global db
     cxn = pymongo.MongoClient(os.getenv("MONGO_URI"))
     db = cxn[os.getenv("MONGO_DBNAME")]
 
@@ -33,6 +37,33 @@ def create_app():
         print(" *", "Connected to MongoDB!")
     except Exception as e:
         print(" * MongoDB connection error:", e)
+
+    # setting up flask_login HERE
+    loginManager = LoginManager()
+    loginManager.init_app(app)
+    # Where to redirect if @login_required fails
+    loginManager.login_view = "auth.login"
+
+    # define a simple User class that extends the imported UserMixin
+    class User(UserMixin):
+        def __init__(self, _id, username, pswdHash):
+            self.id = str(_id)
+            self.username = username
+            self.pswddHash = pswdHash
+
+    # USER LOADER
+    @loginManager.user_loader
+    def load_user(userId):
+        userDoc = db.users.find_one({"_id":ObjectId(userId)})
+        if not userDoc:
+            return None
+        return User(
+            _id=userDoc["_id"],
+            username = userDoc["username"],
+            pswdHash=userDoc["pswdHash"]
+        )
+    
+    app.register_blueprint(auth_bp) # All routes in auth.py should be active now!
 
     @app.route("/")
     def home():
@@ -57,6 +88,18 @@ def create_app():
         return render_template("error.html", error=e)
 
     return app
+
+    # allow auth.pu to import the User class
+    app.User = User
+    return app
+
+def get_db():
+    """
+    Helper function to retrieve the current MongoDB connection
+
+    """
+    global db
+    return db
 
 
 app = create_app()

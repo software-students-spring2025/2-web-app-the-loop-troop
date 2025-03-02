@@ -7,24 +7,31 @@ from bson.objectid import ObjectId
 # creating the blueprint
 auth_bp = Blueprint("auth", __name__, template_folder="templates")
 
+_db = None
+User = None
+
+def init_auth(db, user_class):
+    """Initialize references so we can avoid circular imports"""
+    global _db, User
+    db = db
+    User = user_class
+
 @auth_bp.route("/signup", methods=["GET", "POST"])
 def signup():
-    from app import get_db, User
-    db = get_db()
 
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
 
         # checking for existing user using pymongo
-        existingUser = db.users.find_one({"username": username})
+        existingUser = _db.users.find_one({"username": username})
         if existingUser:
             # flash - stores one-time msg int he user's session to display it on the next page load
             flash("Oops! That username is already taken!")
             return redirect(url_for("auth.signup"))
         # Note: passwords need to be hashed! 
         pswdHash = generate_password_hash(password)
-        result = db.users.insert_one({"username": username, "password_hash": password_hash})
+        result = _db.users.insert_one({"username": username, "pswdHash": pswdHash})
         newId = result.insertedId
 
         # User object is created here!
@@ -40,13 +47,12 @@ def signup():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    from app import get_db, User
-    db = get_db()
+
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
 
-        userDoc = db.users.find_one({"username": username})
+        userDoc = _db.users.find_one({"username": username})
         if userDoc and check_password_hash(userDoc["password_hash"], password):
             user = User(
                 _id=userDoc["_id"], username=userDoc["username"], pswdHash=userDoc["pswdHash"]

@@ -5,8 +5,13 @@ import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from dotenv import load_dotenv, dotenv_values
+from flask_login import LoginManager, UserMixin
+from auth import auth_bp
 
 load_dotenv(override=True)
+
+# global ref to db
+_db = None
 
 
 def create_app():

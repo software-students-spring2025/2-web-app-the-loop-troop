@@ -23,3 +23,21 @@
 .bottom-nav a img:hover {
     opacity: 1;
 }
+
+.profile-div{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.profile-icon{
+border-radius: 50%;
+ height: 100px;
+ width: 100px;
+ overflow: hidden;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+
+}

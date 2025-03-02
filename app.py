@@ -1,6 +1,7 @@
 import os
 import datetime
 from flask import Flask, render_template, request, redirect, url_for
+import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from dotenv import load_dotenv, dotenv_values
@@ -31,7 +32,7 @@ def create_app():
 
     # made global db available
     global db
-    cxn = MongoClient(os.getenv("MONGO_URI"))
+    cxn = pymongo.MongoClient(os.getenv("MONGO_URI"))
     db = cxn[os.getenv("MONGO_DBNAME")]
 
     try:
@@ -101,7 +102,7 @@ def create_app():
         email = "jane@abc.com"
         user = get_user(email)
         username = user["name"] if user and "name" in user else "User"
-        return render_template("journal_entry.html", submitted=True, username=username)
+        return render_template("journal_entry2.html", submitted=True, username=username)
           
     @app.route("/profile")
     def profile():

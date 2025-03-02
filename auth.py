@@ -30,7 +30,9 @@ def signup():
             flash("Oops! That username is already taken!")
             return redirect(url_for("auth.signup"))
         # Note: passwords need to be hashed! 
-        pswdHash = generate_password_hash(password)
+        # PROBLEMATIC
+        pswdHash = password
+        # pswdHash = generate_password_hash(password)
         result = _db.users.insert_one({"username": username, "pswdHash": pswdHash})
         newId = result.inserted_id
 

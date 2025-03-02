@@ -11,6 +11,13 @@
 
   <p>You are now logged in to JournalApp.</p>
 
+  <h2>Start your entry for today!</h2>    
+    
+    <form action="/submit_entry" method="POST">
+        <textarea id="entry" name="entry" rows="10" cols="50" placeholder="Write your thoughts here..."></textarea><br>
+        <button type="submit">Submit</button>
+    </form>
+
   <p>
     <a href="{{ url_for('auth.logout') }}">Log Out</a>
   </p>

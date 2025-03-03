@@ -72,10 +72,10 @@ def create_app():
             _id=userDoc["_id"],
             username = userDoc["username"],
             pswdHash=userDoc["pswdHash"],
-            nickname=userDoc["nickname"],
-            profile_pic=userDoc["profile_pic"], 
-            user_stats=["user_stats"], 
-            user_entries=["user_entries"]
+            nickname=userDoc.get("nickname", userDoc["username"]),  
+            profile_pic=userDoc.get("profile_pic", "static/nav-icons/profile-icon.svg"), 
+            user_stats=userDoc.get("user_stats", {"total_words": 0, "total_entries": 0}), 
+            user_entries=userDoc.get("user_entries", [])  
         )
     init_auth(db, User)
     
@@ -113,6 +113,8 @@ def create_app():
           
     @app.route("/profile")
     def profile():
+        print(current_user)  # 🔍 Debugging line
+        print(current_user.user_stats)  # 🔍 Debugging line
         return render_template("profile.html", current_user=current_user)
     
     @app.route("/profile/stats")

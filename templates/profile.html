@@ -24,7 +24,8 @@
         </div>
 
         <p>
-            you have written 738 entries and 99,876 words
+            You have written {{ current_user.user_stats["total_entries"] }} entries 
+    and {{ current_user.user_stats["total_words"] }} words
             <br>
             since you joined us on March 1, 2020
 

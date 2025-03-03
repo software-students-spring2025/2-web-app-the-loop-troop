@@ -1,3 +1,7 @@
+h1, h2, h3, h4, h5, h6 {
+    cursor: default;
+}
+
 .app-footer {
     position: fixed;
     bottom: 0;
@@ -29,6 +33,7 @@
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    overflow: scroll;
 }
 
 .profile-icon{
@@ -40,4 +45,49 @@ border-radius: 50%;
  justify-content: center;
  align-items: center;
 
+}
+
+
+
+.edit-icon-div:hover #edit-icon {
+    display: inline;
+    cursor: pointer;
+}
+
+#edit-icon{
+    width: 12px;
+    display: none;
+}
+
+
+#pfp-edit-icon{
+    width: 15px;
+    position: absolute;
+    display: none;
+
+}
+
+.pfp-edit-icon-div:hover #pfp-edit-icon {
+    display: inline;
+    cursor: pointer;
+}
+
+.pfp-edit-icon-div{
+    display: flex;
+    flex-direction: row;
+}
+
+#graph-container {
+    width: 100%;  /* Make it responsive */
+    max-width: 800px; /* Prevent it from stretching too much */
+    height: auto;
+    min-width: 350px;
+}
+
+#see-more-stats{
+    text-decoration: none;
+    color: gray;
+}
+#see-more-stats:hover{
+    color: black;
 }

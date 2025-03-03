@@ -10,25 +10,60 @@
 
     <!-- icon div -->
     <div class="profile-div">
-        <h3>Welcome, user</h3>
-        <img src="{{url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="default profile pic" class="profile-icon">
+        <h3>
+            <span class="edit-icon-div"> 
+                <span id="nickname">{{current_user.nickname}}</span>
+                <img id="edit-icon" src="{{url_for('static', filename='misc-icons/edit-icon.svg')}}" alt="">
+        </span>
+
+        </h3>
+
+        <div class="pfp-edit-icon-div">
+            <img src="{{ current_user.profile_pic if current_user.profile_pic else url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="default profile pic" class="profile-icon">
+            <img id="pfp-edit-icon" src="{{url_for('static', filename='misc-icons/edit-icon.svg')}}" alt="">
+        </div>
 
         <p>
-            you have written 738 entries and 99,876 words
+            you have written {{ current_user.user_stats["total_entries"] }} entries 
+            and {{ current_user.user_stats["total_words"] }} words
             <br>
-            since you joined us on March 1, 2020
+            since you joined us on {{ current_user.join_date.strftime("%B %d, %Y") }}
 
             <br><br>
 
-            that's an average of 3,728 days spent writing,
+            that's an average of {{ days_spent_writing }} days spent writing,
             <br>
-            or 32.8 words a day
+            or {{ avg_words_per_day }} words a day
+
+            <br>
+
+
         </p>
         <div>
-            <h3>stats overview</h3>
-            stats here...
+            <h3>your story at a glance</h3>
+            <div id="graph-container">
+                <p id="no-data-message" style="display: none; color: red;">Sorry, not enough data to show.</p>
+                <div id="plotly-graph"></div>
+            </div>
+            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
-            <a href="{{ url_for('stats')}}">click for more..</a>
+            <script>
+                fetch("/profile/graph")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            document.getElementById("no-data-message").style.display = "block";
+                        } else {
+                            Plotly.newPlot("plotly-graph", JSON.parse(data).data, JSON.parse(data).layout, { displayModeBar: false,  staticPlot: true});
+                        }
+                    })
+                    .catch(error => console.error("Error loading graph:", error));
+
+            window.addEventListener('resize', function() {
+                Plotly.Plots.resize('graph');
+            });
+            </script>
+            <a href="{{url_for ('profile.stats')}}" id="see-more-stats">see more...</a>
         </div>
 
        

@@ -120,6 +120,8 @@ def create_app():
 
         days_spent_writing = (now - join_date).days
         # days_spent_writing = 34 # uncomment to test
+        days_spent_writing = max(1, days_spent_writing) # start counting from 1, instead of 0. so, 
+                                                        # if you just join today, you still get stats
 
         if days_spent_writing > 0:
             avg_words_per_day = current_user.user_stats["total_words"] / days_spent_writing

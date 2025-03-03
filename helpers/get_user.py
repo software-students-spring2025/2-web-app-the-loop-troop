@@ -3,9 +3,7 @@ import os
 from datetime import datetime, timezone
 import json
 from dotenv import load_dotenv
-
 load_dotenv(override=True) 
-
 database_url = os.getenv('MONGO_URI')
 client = pymongo.MongoClient(database_url)
 db = client[os.getenv("MONGO_DBNAME")]

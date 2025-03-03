@@ -31,7 +31,7 @@ def signup():
             return redirect(url_for("auth.signup"))
         # Note: passwords need to be hashed! 
         # WARNING: Fails on certain computers!
-        # pswdHash = generate_password_hash(password)
+        pswdHash = generate_password_hash(password)
         pswdHash = password
         result = _db.users.insert_one({
             "username": username, 

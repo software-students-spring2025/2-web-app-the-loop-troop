@@ -1,11 +1,12 @@
 import os
-import datetime
+from datetime import datetime, timezone
 from flask import Flask, render_template, request, redirect, url_for
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from dotenv import load_dotenv, dotenv_values
 from flask_login import LoginManager, UserMixin, current_user, login_required
 from auth import auth_bp
+from profilestats import profile_bp
 
 from helpers.add_entry import add_entry
 from helpers.get_user import get_user
@@ -14,6 +15,34 @@ load_dotenv(override=True)
 
 # global ref to db
 db = None
+
+################ hardcoded fake data to test stats. this code should be removed
+################ after the journal entries db is set up
+fake_entries = [
+    {
+        "_id": ObjectId(),
+        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
+        "content": "Today was a peaceful day. I reflected on my journey.",
+        "word_count": 10,
+        "date_created": datetime(2025, 2, 28, 14, 30, tzinfo=timezone.utc),
+    },
+    {
+        "_id": ObjectId(),
+        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
+        "content": "Wrote some poetry. Feeling inspired.",
+        "word_count": 7,
+        "date_created": datetime(2025, 3, 1, 9, 15, tzinfo=timezone.utc),
+    },
+    {
+        "_id": ObjectId(),
+        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
+        "content": "Late night journaling. So many thoughts swirling.",
+        "word_count": 9,
+        "date_created": datetime(2025, 3, 1, 23, 45, tzinfo=timezone.utc),
+    }
+]
+
+################ 
 
 def create_app():
     """
@@ -24,7 +53,7 @@ def create_app():
     app = Flask(__name__)
     # load flask config from env variables
     config = dotenv_values()
-    app.config.from_mapping(config)
+    app.config.from_mapping(config)  
 
     # Creating secret key for a session HERE
     app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-this-in-.env")
@@ -51,10 +80,15 @@ def create_app():
 
     # define a simple User class that extends the imported UserMixin
     class User(UserMixin):
-        def __init__(self, _id, username, pswdHash):
+        def __init__(self, _id, username, pswdHash, nickname, profile_pic, user_entries, user_stats, join_date):
             self.id = str(_id)
             self.username = username
             self.pswddHash = pswdHash
+            self.nickname = nickname if nickname is not None else username  # defaults to username if nickname not found
+            self.profile_pic = profile_pic if profile_pic is not None else "static/nav-icons/profile-icon.svg"
+            self.user_stats = user_stats if user_stats is not None else {"total_words": 0, "total_entries": 0}
+            self.user_entries = user_entries if user_entries is not None else []
+            self.join_date = join_date
 
     
 
@@ -67,7 +101,12 @@ def create_app():
         return User(
             _id=userDoc["_id"],
             username = userDoc["username"],
-            pswdHash=userDoc["pswdHash"]
+            pswdHash=userDoc["pswdHash"],
+            nickname=userDoc.get("nickname", userDoc["username"]),
+            profile_pic=userDoc.get("profile_pic", "static/nav-icons/profile-icon.svg"), 
+            user_stats=userDoc.get("user_stats", {"total_words": 0, "total_entries": 0}), 
+            user_entries=userDoc.get("user_entries", []),
+            join_date = userDoc["_id"].generation_time
         )
     init_auth(db, User)
     
@@ -102,14 +141,8 @@ def create_app():
         user = get_user(email)
         username = user["name"] if user and "name" in user else "User"
         return render_template("journal_entry.html", submitted=True, username=username)
-          
-    @app.route("/profile")
-    def profile():
-        return render_template("profile.html")
     
-    @app.route("/profile/stats")
-    def stats():
-        return render_template("stats.html")
+    app.register_blueprint(profile_bp)
     
     @app.errorhandler(Exception)
     def handle_error(e):

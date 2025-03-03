@@ -129,7 +129,7 @@ def create_app():
         # user = get_user(email)
         # username = user["name"] if user and "name" in user else "User"
         # return render_template("journal_entry.html", username=username)
-    
+
     @app.route("/submit_entry", methods=["POST"])
     def submit_entry():
         """

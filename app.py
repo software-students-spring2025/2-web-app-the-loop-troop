@@ -121,7 +121,7 @@ def create_app():
         """
         
         if current_user.is_authenticated:
-            return render_template("journal_entry.html", username=current_user.username)
+            return render_template("journal_entry2.html", username=current_user.username)
         else:
             return redirect(url_for("auth.signup"))
         

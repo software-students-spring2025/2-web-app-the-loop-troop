@@ -141,7 +141,6 @@ def create_app():
         email = "jane@abc.com"
         user = get_user(email)
         username = user["name"] if user and "name" in user else "User"
-<<<<<<< HEAD
         return render_template("journal_entry2.html", submitted=True, username=username)
           
     @app.route("/profile")

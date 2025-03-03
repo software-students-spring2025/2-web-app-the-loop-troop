@@ -5,7 +5,7 @@ import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from dotenv import load_dotenv, dotenv_values
-from flask_login import LoginManager, UserMixin, current_user, login_required
+from flask_login import LoginManager, UserMixin, current_user, login_required, logout_user
 from auth import auth_bp
 from profilestats import profile_bp
 
@@ -110,7 +110,16 @@ def create_app():
             join_date=userDoc.get("join_date", userDoc["_id"].generation_time)
         )
     init_auth(db, User)
-    
+
+    @app.before_request
+    def force_signup():
+        # if a user is authenticated and it trying to access anyting other than signup/login, log them out
+        allowed_endpoints = {"auth.signup", "auth.login", "static"}
+        if current_user.is_authenticated and request.endpoint not in allowed_endpoints:
+            logout_user()
+            return redirect(url_for("auth.signup"))
+
+
     app.register_blueprint(auth_bp) # All routes in auth.py should be active now!
 
     @app.route("/") # root

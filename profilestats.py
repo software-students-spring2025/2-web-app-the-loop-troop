@@ -1,8 +1,9 @@
 import os
 from datetime import datetime, timezone
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, jsonify
 from flask_login import login_required, current_user
 from bson.objectid import ObjectId
+import plotly.graph_objects as go
 
 profile_bp = Blueprint("profile", __name__)
 
@@ -28,7 +29,7 @@ fake_entries = [
         "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
         "content": "Late night journaling. So many thoughts swirling.",
         "word_count": 9,
-        "date_created": datetime(2025, 3, 1, 23, 45, tzinfo=timezone.utc),
+        "date_created": datetime(2025, 3, 2, 23, 45, tzinfo=timezone.utc),
     }
 ]
 
@@ -63,3 +64,64 @@ def profile():
 @login_required
 def stats():
     return render_template("stats.html", current_user=current_user)
+
+
+@profile_bp.route("/profile/graph")
+@login_required
+def profile_graph():
+    
+    # get the current date
+    now = datetime.now(timezone.utc)
+
+    # user_entries = current_user.user_entries
+    user_entries = fake_entries
+
+    if not user_entries:
+        print("No entries found at all!")
+        return jsonify({"error": "Not enough data to generate a graph."})
+
+    # Filter journal entries to only include entries from the last 7 days
+    # recent_entries = [
+    #     entry for entry in current_user.user_entries
+    #     if (now - entry["date_created"]).days <= 7
+    # ]
+
+    # if not recent_entries:
+    #     print("⚠️ No entries in the last 7 days!")
+    #     return jsonify({"error": "Not enough data to generate a graph."})
+    
+
+    # convert fake_entries to x (dates) and y (word counts)
+    x_dates = [entry["date_created"].strftime("%Y-%m-%d") for entry in fake_entries]
+    y_words = [entry["word_count"] for entry in fake_entries]
+
+
+    graph = go.Figure()
+
+    graph.add_trace(go.Bar(
+        x=x_dates, 
+        y=y_words, 
+        marker_color="black",  
+        text=y_words, 
+        textposition="inside", 
+        name="Words Written"
+    ))
+
+    graph.update_layout(
+        title="Words by Week",
+        title_x=0.0, 
+        xaxis_title="",
+        yaxis_title="",
+        xaxis=dict(tickformat="%b %d", tickmode="array", tickvals=x_dates),  
+        yaxis=dict(showgrid=False, showticklabels=False),
+        plot_bgcolor="#D3D3D3",  
+        font=dict(size=10, color="black"),
+        margin=dict(t=50, b=40, l=20, r=20),
+        height=400,
+        bargap=0.2,  
+        showlegend=False,
+        width=None,
+        autosize=True,
+        )
+
+    return jsonify(graph.to_json())  # return JSON data for frontend rendering

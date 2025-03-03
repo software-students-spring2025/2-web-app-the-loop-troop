@@ -10,7 +10,7 @@
 
     <!-- icon div -->
     <div class="profile-div">
-        <h3>Welcome, 
+        <h3>
             <span class="edit-icon-div"> 
                 <span id="nickname">{{current_user.nickname}}</span>
                 <img id="edit-icon" src="{{url_for('static', filename='misc-icons/edit-icon.svg')}}" alt="">
@@ -41,9 +41,29 @@
         </p>
         <div>
             <h3>your story at a glance</h3>
-            stats here...
+            <div id="graph-container">
+                <p id="no-data-message" style="display: none; color: red;">Sorry, not enough data to show.</p>
+                <div id="plotly-graph"></div>
+            </div>
+            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
-            <a href="{{ url_for('profile.stats')}}">click for more..</a>
+            <script>
+                fetch("/profile/graph")
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            document.getElementById("no-data-message").style.display = "block";
+                        } else {
+                            Plotly.newPlot("plotly-graph", JSON.parse(data).data, JSON.parse(data).layout, { displayModeBar: false,  staticPlot: true});
+                        }
+                    })
+                    .catch(error => console.error("Error loading graph:", error));
+
+            window.addEventListener('resize', function() {
+                Plotly.Plots.resize('graph');
+            });
+            </script>
+            <a href="{{url_for ('profile.stats')}}" id="see-more-stats">see more...</a>
         </div>
 
        

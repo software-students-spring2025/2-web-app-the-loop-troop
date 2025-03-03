@@ -80,7 +80,7 @@ def create_app():
 
     # define a simple User class that extends the imported UserMixin
     class User(UserMixin):
-        def __init__(self, _id, username, pswdHash, nickname, profile_pic, user_entries, user_stats, join_date):
+        def __init__(self, _id, username, pswdHash, nickname, profile_pic, user_entries, user_stats, join_date=None):
             self.id = str(_id)
             self.username = username
             self.pswddHash = pswdHash
@@ -88,7 +88,7 @@ def create_app():
             self.profile_pic = profile_pic if profile_pic is not None else "static/nav-icons/profile-icon.svg"
             self.user_stats = user_stats if user_stats is not None else {"total_words": 0, "total_entries": 0}
             self.user_entries = user_entries if user_entries is not None else []
-            self.join_date = join_date
+            self.join_date = join_date if join_date is not None else _id.generation_time
 
     
 
@@ -106,7 +106,7 @@ def create_app():
             profile_pic=userDoc.get("profile_pic", "static/nav-icons/profile-icon.svg"), 
             user_stats=userDoc.get("user_stats", {"total_words": 0, "total_entries": 0}), 
             user_entries=userDoc.get("user_entries", []),
-            join_date = userDoc["_id"].generation_time
+            join_date=userDoc.get("join_date", userDoc["_id"].generation_time)
         )
     init_auth(db, User)
     
@@ -120,7 +120,7 @@ def create_app():
         """
         
         if current_user.is_authenticated:
-            return redirect(url_for("auth.dashboard"))
+            return render_template("journal_entry.html", username=current_user.username)
         else:
             return redirect(url_for("auth.signup"))
         

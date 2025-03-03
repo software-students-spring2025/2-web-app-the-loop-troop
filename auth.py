@@ -31,12 +31,28 @@ def signup():
             return redirect(url_for("auth.signup"))
         # Note: passwords need to be hashed! 
         pswdHash = generate_password_hash(password)
-        result = _db.users.insert_one({"username": username, "pswdHash": pswdHash})
+        result = _db.users.insert_one({
+            "username": username, 
+            "pswdHash": pswdHash,
+            "nickname": username, #username by default
+            "profile_pic": "static/nav-icons/profile-icon.svg",
+            "user_stats":{
+                "total_words": 0,
+                "total_entries": 0
+            },
+            "user_entries": []
+            })
         newId = result.inserted_id
 
         # User object is created here!
         user = User(
-            _id=newId, username=username, pswdHash = pswdHash
+            _id=newId, 
+            username=username, 
+            pswdHash = pswdHash,
+            nickname=username,  # defaults to username
+            profile_pic="static/nav-icons/profile-icon.svg",
+            user_entries=[],
+            user_stats={"total_words": 0, "total_entries": 0}
         )
         login_user(user)
         flash("Alrighty, you are good to go!")
@@ -55,7 +71,13 @@ def login():
         userDoc = _db.users.find_one({"username": username})
         if userDoc and check_password_hash(userDoc["pswdHash"], password):
             user = User(
-                _id=userDoc["_id"], username=userDoc["username"], pswdHash=userDoc["pswdHash"]
+                _id=userDoc["_id"], 
+                username=userDoc["username"], 
+                pswdHash=userDoc["pswdHash"],
+                nickname=userDoc.get("nickname"),
+                profile_pic=userDoc.get("profile_pic"),
+                user_entries=userDoc.get("user_entries"),
+                user_stats=userDoc.get("user_stats")
             )
             login_user(user)
             flash("Nice, you are loggen in!")

@@ -25,7 +25,7 @@ def create_app():
     app = Flask(__name__)
     # load flask config from env variables
     config = dotenv_values()
-    app.config.from_mapping(config)
+    app.config.from_mapping(config)  
 
     # Creating secret key for a session HERE
     app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-this-in-.env")
@@ -52,10 +52,14 @@ def create_app():
 
     # define a simple User class that extends the imported UserMixin
     class User(UserMixin):
-        def __init__(self, _id, username, pswdHash):
+        def __init__(self, _id, username, pswdHash, nickname, profile_pic, user_entries, user_stats):
             self.id = str(_id)
             self.username = username
             self.pswddHash = pswdHash
+            self.nickname = nickname if nickname is not None else username  # defaults to username if nickname not found
+            self.profile_pic = profile_pic if profile_pic is not None else "static/nav-icons/profile-icon.svg"
+            self.user_stats = user_stats if user_stats is not None else {"total_words": 0, "total_entries": 0}
+            self.user_entries = user_entries if user_entries is not None else []
 
     
 
@@ -68,7 +72,11 @@ def create_app():
         return User(
             _id=userDoc["_id"],
             username = userDoc["username"],
-            pswdHash=userDoc["pswdHash"]
+            pswdHash=userDoc["pswdHash"],
+            nickname=userDoc["nickname"],
+            profile_pic=userDoc["profile_pic"], 
+            user_stats=["user_stats"], 
+            user_entries=["user_entries"]
         )
     init_auth(db, User)
     
@@ -106,11 +114,11 @@ def create_app():
           
     @app.route("/profile")
     def profile():
-        return render_template("profile.html")
+        return render_template("profile.html", current_user=current_user)
     
     @app.route("/profile/stats")
     def stats():
-        return render_template("stats.html")
+        return render_template("stats.html", current_user=current_user)
     
     @app.errorhandler(Exception)
     def handle_error(e):

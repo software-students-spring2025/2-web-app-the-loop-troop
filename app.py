@@ -146,11 +146,7 @@ def create_app():
           
     @app.route("/profile")
     def profile():
-        return render_template("profile.html")
-=======
-        return render_template("journal_entry.html", submitted=True, username=username)
->>>>>>> 9651fbbc9b51395fbc7368c34872f114339fcb94
-    
+        return render_template("profile.html")    
     app.register_blueprint(profile_bp)
     
     @app.errorhandler(Exception)

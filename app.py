@@ -1,5 +1,5 @@
 import os
-import datetime
+from datetime import datetime, timezone
 from flask import Flask, render_template, request, redirect, url_for
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -51,7 +51,7 @@ def create_app():
 
     # define a simple User class that extends the imported UserMixin
     class User(UserMixin):
-        def __init__(self, _id, username, pswdHash, nickname, profile_pic, user_entries, user_stats):
+        def __init__(self, _id, username, pswdHash, nickname, profile_pic, user_entries, user_stats, join_date):
             self.id = str(_id)
             self.username = username
             self.pswddHash = pswdHash
@@ -59,6 +59,7 @@ def create_app():
             self.profile_pic = profile_pic if profile_pic is not None else "static/nav-icons/profile-icon.svg"
             self.user_stats = user_stats if user_stats is not None else {"total_words": 0, "total_entries": 0}
             self.user_entries = user_entries if user_entries is not None else []
+            self.join_date = join_date
 
     
 
@@ -72,10 +73,11 @@ def create_app():
             _id=userDoc["_id"],
             username = userDoc["username"],
             pswdHash=userDoc["pswdHash"],
-            nickname=userDoc.get("nickname", userDoc["username"]),  
+            nickname=userDoc.get("nickname", userDoc["username"]),
             profile_pic=userDoc.get("profile_pic", "static/nav-icons/profile-icon.svg"), 
             user_stats=userDoc.get("user_stats", {"total_words": 0, "total_entries": 0}), 
-            user_entries=userDoc.get("user_entries", [])  
+            user_entries=userDoc.get("user_entries", []),
+            join_date = userDoc["_id"].generation_time
         )
     init_auth(db, User)
     
@@ -113,10 +115,21 @@ def create_app():
           
     @app.route("/profile")
     def profile():
-        print(current_user)  # 🔍 Debugging line
-        print(current_user.user_stats)  # 🔍 Debugging line
-        return render_template("profile.html", current_user=current_user)
-    
+        now = datetime.now(timezone.utc) # convert utc to offset-aware type
+        join_date = current_user.join_date.replace(tzinfo=timezone.utc)
+
+        days_spent_writing = (now - join_date).days
+        # days_spent_writing = 34 # uncomment to test
+
+        if days_spent_writing > 0:
+            avg_words_per_day = current_user.user_stats["total_words"] / days_spent_writing
+        else:
+            avg_words_per_day = 0
+
+        return render_template("profile.html", current_user=current_user, 
+                                days_spent_writing=days_spent_writing, 
+                                avg_words_per_day=round(avg_words_per_day, 1))
+
     @app.route("/profile/stats")
     def stats():
         return render_template("stats.html", current_user=current_user)

@@ -24,16 +24,17 @@
         </div>
 
         <p>
-            You have written {{ current_user.user_stats["total_entries"] }} entries 
-    and {{ current_user.user_stats["total_words"] }} words
+            you have written {{ current_user.user_stats["total_entries"] }} entries 
+            and {{ current_user.user_stats["total_words"] }} words
             <br>
-            since you joined us on March 1, 2020
+            since you joined us on {{ current_user.join_date.strftime("%B %d, %Y") }}
 
             <br><br>
 
-            that's an average of 3,728 days spent writing,
+            that's an average of {{ days_spent_writing }} days spent writing,
             <br>
-            or 32.8 words a day
+            or {{ avg_words_per_day }} words a day
+
         </p>
         <div>
             <h3>stats overview</h3>

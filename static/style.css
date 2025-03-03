@@ -1,3 +1,7 @@
+h1, h2, h3, h4, h5, h6 {
+    cursor: default;
+}
+
 .app-footer {
     position: fixed;
     bottom: 0;
@@ -40,4 +44,34 @@ border-radius: 50%;
  justify-content: center;
  align-items: center;
 
+}
+
+
+
+.edit-icon-div:hover #edit-icon {
+    display: inline;
+    cursor: pointer;
+}
+
+#edit-icon{
+    width: 12px;
+    display: none;
+}
+
+
+#pfp-edit-icon{
+    width: 15px;
+    position: absolute;
+    display: none;
+
+}
+
+.pfp-edit-icon-div:hover #pfp-edit-icon {
+    display: inline;
+    cursor: pointer;
+}
+
+.pfp-edit-icon-div{
+    display: flex;
+    flex-direction: row;
 }

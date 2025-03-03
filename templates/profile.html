@@ -10,8 +10,18 @@
 
     <!-- icon div -->
     <div class="profile-div">
-        <h3>Welcome, user</h3>
-        <img src="{{url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="default profile pic" class="profile-icon">
+        <h3>Welcome, 
+            <span class="edit-icon-div"> 
+                <span id="nickname">{{current_user.nickname}}</span>
+                <img id="edit-icon" src="{{url_for('static', filename='misc-icons/edit-icon.svg')}}" alt="">
+        </span>
+
+        </h3>
+
+        <div class="pfp-edit-icon-div">
+            <img src="{{ current_user.profile_pic if current_user.profile_pic else url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="default profile pic" class="profile-icon">
+            <img id="pfp-edit-icon" src="{{url_for('static', filename='misc-icons/edit-icon.svg')}}" alt="">
+        </div>
 
         <p>
             you have written 738 entries and 99,876 words

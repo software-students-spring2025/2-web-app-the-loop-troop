@@ -6,6 +6,7 @@ from bson.objectid import ObjectId
 from dotenv import load_dotenv, dotenv_values
 from flask_login import LoginManager, UserMixin, current_user, login_required
 from auth import auth_bp
+from profilestats import profile_bp
 
 from helpers.add_entry import add_entry
 from helpers.get_user import get_user
@@ -14,6 +15,34 @@ load_dotenv(override=True)
 
 # global ref to db
 db = None
+
+################ hardcoded fake data to test stats. this code should be removed
+################ after the journal entries db is set up
+fake_entries = [
+    {
+        "_id": ObjectId(),
+        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
+        "content": "Today was a peaceful day. I reflected on my journey.",
+        "word_count": 10,
+        "date_created": datetime(2025, 2, 28, 14, 30, tzinfo=timezone.utc),
+    },
+    {
+        "_id": ObjectId(),
+        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
+        "content": "Wrote some poetry. Feeling inspired.",
+        "word_count": 7,
+        "date_created": datetime(2025, 3, 1, 9, 15, tzinfo=timezone.utc),
+    },
+    {
+        "_id": ObjectId(),
+        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
+        "content": "Late night journaling. So many thoughts swirling.",
+        "word_count": 9,
+        "date_created": datetime(2025, 3, 1, 23, 45, tzinfo=timezone.utc),
+    }
+]
+
+################ 
 
 def create_app():
     """
@@ -112,29 +141,8 @@ def create_app():
         user = get_user(email)
         username = user["name"] if user and "name" in user else "User"
         return render_template("journal_entry.html", submitted=True, username=username)
-          
-    @app.route("/profile")
-    def profile():
-        now = datetime.now(timezone.utc) # convert utc to offset-aware type
-        join_date = current_user.join_date.replace(tzinfo=timezone.utc)
-
-        days_spent_writing = (now - join_date).days
-        # days_spent_writing = 34 # uncomment to test
-        days_spent_writing = max(1, days_spent_writing) # start counting from 1, instead of 0. so, 
-                                                        # if you just join today, you still get stats
-
-        if days_spent_writing > 0:
-            avg_words_per_day = current_user.user_stats["total_words"] / days_spent_writing
-        else:
-            avg_words_per_day = 0
-
-        return render_template("profile.html", current_user=current_user, 
-                                days_spent_writing=days_spent_writing, 
-                                avg_words_per_day=round(avg_words_per_day, 1))
-
-    @app.route("/profile/stats")
-    def stats():
-        return render_template("stats.html", current_user=current_user)
+    
+    app.register_blueprint(profile_bp)
     
     @app.errorhandler(Exception)
     def handle_error(e):

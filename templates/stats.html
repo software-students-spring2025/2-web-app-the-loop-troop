@@ -3,13 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Stats</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <div>This is the stats page</div>
-        {% include 'footer.html' %}  
+        <h2>Your Stats</h2>
+
+        <p>Your longest entry was <strong id="longest-entry">...</strong> words.</p>
+        <p>Your shortest entry was <strong id="shortest-entry">...</strong> words.</p>
+        <p>Your most active writing time is <strong id="active-time">...</strong>.</p>
+
+        <h3>Words Written</h3>
+        
+        
+
+        <div id="graph-container">
+            <p id="no-data-message" style="display: none; color: gray;">Sorry, not enough data to show.</p>
+            <div id="plotly-graph"></div>
+        </div>
+
+        <label for="time-range">View by:</label>
+        <select id="time-range">
+            <option value="week" selected>Week</option>
+            <option value="month">Month</option>
+            <option value="year">Year</option>
+        </select>
+
+        <button id="prev-button">←</button>
+        <button id="next-button" style="display: none;">→</button>
+
+
+        <script>
+            let timeRange = "week";
+            let offset = 0;
+
+            function loadStats() {
+                fetch("/profile/stats_data")
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById("longest-entry").textContent = data.longest_entry;
+                        document.getElementById("shortest-entry").textContent = data.shortest_entry;
+                        document.getElementById("active-time").textContent = data.active_time;
+                    })
+                    .catch(error => console.error("Error loading stats:", error));
+            }
+
+
+            function loadGraph() {
+                fetch(`/profile/stats_graph?time_range=${timeRange}&offset=${offset}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            document.getElementById("no-data-message").style.display = "block";
+                            document.getElementById("plotly-graph").innerHTML = "";
+                        } else {
+                            document.getElementById("no-data-message").style.display = "none";
+                            Plotly.newPlot("plotly-graph", JSON.parse(data).data, JSON.parse(data).layout, {
+                                displayModeBar: false,
+                                staticPlot: true
+                            });
+                        }
+                        document.getElementById("next-button").style.display = offset >= 0 ? "none" : "inline-block";
+                    })
+                    .catch(error => console.error("Error loading graph:", error));
+            }
+
+            document.getElementById("time-range").addEventListener("change", function () {
+                timeRange = this.value;
+                offset = 0; 
+                loadGraph();
+            });
+
+            document.getElementById("prev-button").addEventListener("click", function () {
+                offset--;  
+                loadGraph();
+            });
+
+            document.getElementById("next-button").addEventListener("click", function () {
+                if (offset < 0) {
+                    offset++;  
+                    loadGraph();
+                }
+            });
+
+            window.addEventListener('resize', function () {
+                Plotly.Plots.resize('plotly-graph');
+            });
+
+            loadStats();
+            loadGraph();
+        </script>
+
+
+        {% include 'footer.html' %}
     </div>
 </body>
 </html>

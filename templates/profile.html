@@ -13,15 +13,151 @@
         <h3>
             <span class="edit-icon-div"> 
                 <span id="nickname">{{current_user.nickname}}</span>
-                <img id="edit-icon" src="{{url_for('static', filename='misc-icons/edit-icon.svg')}}" alt="">
+                <img id="edit-icon" src="{{url_for('static', filename='misc-icons/edit-icon.svg')}}" alt="edit icon button" onclick="openModal()">
         </span>
 
         </h3>
 
-        <div class="pfp-edit-icon-div">
-            <img src="{{ current_user.profile_pic if current_user.profile_pic else url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="default profile pic" class="profile-icon">
-            <img id="pfp-edit-icon" src="{{url_for('static', filename='misc-icons/edit-icon.svg')}}" alt="">
+        <!-- change nickname stuff -->
+        <div id="nickname-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h3>Edit Nickname</h3>
+                <input type="text" id="new-nickname" placeholder="Enter new nickname" value="{{ current_user.nickname }}">
+                <div class="modal-buttons">
+                    <button onclick="saveNickname()">Save</button>
+                    <button onclick="closeModal()">Cancel</button>
+                </div>
+            </div>
         </div>
+        
+        <script>
+            function openModal() {
+                document.getElementById("nickname-modal").style.display = "flex";
+                document.getElementById("new-nickname").focus();
+            }
+        
+            function closeModal() {
+                document.getElementById("nickname-modal").style.display = "none";
+            }
+        
+            function saveNickname() {
+                let newNickname = document.getElementById("new-nickname").value.trim();
+        
+                if (newNickname === "") {
+                    alert("Nickname cannot be empty!");
+                    return;
+                }
+        
+                fetch("/profile/update_nickname", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ nickname: newNickname })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        // update nickname in real-time
+                        document.getElementById("nickname").textContent = data.new_nickname;
+                        closeModal();
+                    }
+                })
+                .catch(error => console.error("Error updating nickname:", error));
+            }
+        
+            window.onclick = function(event) {
+                let modal = document.getElementById("nickname-modal");
+                if (event.target === modal) {
+                    closeModal();
+                }
+            };
+        </script>
+        
+        
+
+        <!-- change pfp stuff -->
+        <div class="pfp-edit-icon-div">
+            <img id="profile-pic" src="{{ url_for('profile.get_profile_pic', user_id=current_user.id) }}" alt="Profile Picture" class="profile-icon">
+            <img id="pfp-edit-icon" src="{{url_for('static', filename='misc-icons/edit-icon.svg')}}" alt="" onclick="openPfpModal()">
+        </div>
+
+        <div id="pfp-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closePfpModal()">&times;</span>
+                <h3>Update Profile Picture</h3>
+
+                <img id="preview-img" src="{{ url_for('profile.get_profile_pic', user_id=current_user.id) }}" alt="Preview" class="profile-icon">
+                
+                <input type="file" id="profile-pic-input" accept="image/*">
+
+                <div class="modal-buttons">
+                    <button onclick="uploadPfp()">Save</button>
+                    <button onclick="closePfpModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openPfpModal() {
+                document.getElementById("pfp-modal").style.display = "flex";
+            }
+
+            function closePfpModal() {
+                document.getElementById("pfp-modal").style.display = "none";
+            }
+
+            // preview selected image
+            document.getElementById("profile-pic-input").addEventListener("change", function(event) {
+                let file = event.target.files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById("preview-img").src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            function uploadPfp() {
+                let fileInput = document.getElementById("profile-pic-input");
+                if (fileInput.files.length === 0) {
+                    alert("Please select a file.");
+                    return;
+                }
+
+                let formData = new FormData();
+                formData.append("profile_pic", fileInput.files[0]);
+
+                fetch("/profile/update_pfp", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        let newUrl = data.new_pfp_url + "?t=" + new Date().getTime();
+                        document.getElementById("profile-pic").src = newUrl;
+                        document.getElementById("preview-img").src = newUrl;
+                        closePfpModal();
+                    }
+                })
+                .catch(error => console.error("Error uploading profile picture:", error));
+            }
+
+            window.onclick = function(event) {
+                let modal = document.getElementById("pfp-modal");
+                if (event.target === modal) {
+                    closePfpModal();
+                }
+            };
+        </script>
+
 
         <p>
             you have written {{ current_user.user_stats["total_entries"] }} entries 
@@ -43,8 +179,8 @@
         <div>
             <h3>your story at a glance</h3>
 
-            <button id="prev-week">← Previous Week</button>
-            <button id="next-week" style="display: none;">Next Week →</button>
+            <button id="prev-button">←</button>
+            <button id="next-button" style="display: none;">→</button>
 
 
             <div id="graph-container">
@@ -72,20 +208,20 @@
                             }
                             // hide the nxt wk button if we're on or ahead of the current week
                             if (weekOffset >= 0) {
-                                document.getElementById("next-week").style.display = "none";
+                                document.getElementById("next-button").style.display = "none";
                             } else {
-                                document.getElementById("next-week").style.display = "inline-block";
+                                document.getElementById("next-button").style.display = "inline-block";
                             }
                         })
                         .catch(error => console.error("Error loading graph:", error));
                 }
             
-                document.getElementById("prev-week").addEventListener("click", function () {
+                document.getElementById("prev-button").addEventListener("click", function () {
                     weekOffset--;  // go one week back
                     loadGraph();
                 });
             
-                document.getElementById("next-week").addEventListener("click", function () {
+                document.getElementById("next-button").addEventListener("click", function () {
                     if (weekOffset < 0) {
                         weekOffset++;  // go one week forward
                         loadGraph();

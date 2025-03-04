@@ -15,16 +15,30 @@ collection = db["journalEntries"]
 #     entry = collection.delete_one(query)
 #     print(entry)
 
-def delete_entry(entry_id):
+def delete_entry(entry_id, username):
     """Deletes an entry by ID and returns whether it was successful."""
     try:
         if not entry_id:
             raise ValueError("Invalid entry ID")
+        
+        entry = collection.find_one({"_id": ObjectId(entry_id)})
+        word_count = entry["word_count"]
 
         query = {"_id": ObjectId(entry_id)}
         result = collection.delete_one(query)
 
-        return result.deleted_count > 0  # Returns True if deleted, False if not found
+        if result.deleted_count > 0:
+            # decrement total_words and total_entries
+            db.users.update_one(
+                {"username": username},
+                {"$inc": {
+                    "user_stats.total_words": -word_count,
+                    "user_stats.total_entries": -1
+                }}
+            )
+            return True  # successfully deleted
+        else:
+            return False  # entry was not deleted
 
     except Exception as e:
         print(f"Error deleting entry: {e}")

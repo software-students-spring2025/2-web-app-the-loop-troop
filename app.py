@@ -129,7 +129,7 @@ def create_app():
         # user = get_user(email)
         # username = user["name"] if user and "name" in user else "User"
         # return render_template("journal_entry.html", username=username)
-    
+
     @app.route("/submit_entry", methods=["POST"])
     def submit_entry():
         """
@@ -137,11 +137,9 @@ def create_app():
         """
         entry = request.form.get("entry")
         # return add_entry(entry)
-        add_entry(entry) # CRITICAL
-        email = "jane@abc.com"
-        user = get_user(email)
-        username = user["name"] if user and "name" in user else "User"
-        return render_template("journal_entry2.html", submitted=True, username=username)
+        add_entry(entry,current_user.username) # CRITICAL
+        username = current_user.username
+        return render_template("journal_entry2.html", submitted=True, username=current_user.username)
           
     @app.route("/profile")
     def profile():

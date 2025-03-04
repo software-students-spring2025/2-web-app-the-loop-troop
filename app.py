@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timezone
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, current_app
 import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -59,6 +59,9 @@ def create_app():
     # Creating secret key for a session HERE
     app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-this-in-.env")
 
+    # app startup marker is created HERE
+    app.config['APP_START'] = str(datetime.now())
+
     # made global db available
     global db
     cxn = pymongo.MongoClient(os.getenv("MONGO_URI"))
@@ -112,22 +115,14 @@ def create_app():
     init_auth(db, User)
 
     @app.before_request
-    def force_signup():
-        # Include endpoints that should be accessible to logged-in users
-        allowed_endpoints = {
-            "auth.signup",
-            "auth.login",
-            "static",
-            "auth.dashboard",  # For the dashboard route in auth
-            "home",            # For your home route
-            "profile",         # For the profile page
-            "submit_entry"     # For submitting journal entries
-        }
-        if current_user.is_authenticated and request.endpoint not in allowed_endpoints:
-            logout_user()
-            return redirect(url_for("auth.signup"))
-
-
+    def check_app_restart():
+        # If the user is logged in, check if their session marker matches the current app marker.
+        if current_user.is_authenticated:
+            if session.get('app_start') != app.config['APP_START']:
+                # The app has restarted – clear session and force re-login
+                logout_user()
+                session.clear()
+                return redirect(url_for("auth.signup"))
 
     app.register_blueprint(auth_bp) # All routes in auth.py should be active now!
 
@@ -142,13 +137,10 @@ def create_app():
             return render_template("journal_entry2.html", username=current_user.username)
         else:
             return redirect(url_for("auth.signup"))
-        
-        # email = "jane@abc.com"
-        # user = get_user(email)
-        # username = user["name"] if user and "name" in user else "User"
-        # return render_template("journal_entry.html", username=username)
+    
 
     @app.route("/submit_entry", methods=["POST"])
+    @login_required
     def submit_entry():
         """
         

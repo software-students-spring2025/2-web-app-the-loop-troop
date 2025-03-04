@@ -11,11 +11,12 @@ db = client[os.getenv("MONGO_DBNAME")]
 collection = db["journalEntries"]
 
 
-def add_entry(entry):
+def add_entry(entry, username):
     new_entry = {
         "date": datetime.now(timezone.utc).isoformat(),
         "content": entry,
-        "tag": "Some Tag"
+        "tag": "Some Tag",
+        "username": username
     }
 
     print(f"DEBUG: {new_entry}")

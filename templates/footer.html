@@ -6,27 +6,26 @@
     <title>Document</title>
 </head>
 <body>
-    <div class="container">
-        <footer class="app-footer">
-            <nav class="bottom-nav">
-                <a href="{{ url_for('home') }}">
-                    <img src="{{ url_for('static', filename='nav-icons/home-icon.svg') }}" alt="Home">
-                </a>
-                <a href="">
-                    <img src="{{ url_for('static', filename='nav-icons/entries-icon2.svg') }}" alt="Entries">
-                </a>
-                <a href="{{ url_for('profile.profile') }}">
-                    <img src="{{ url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="Profile">
-                </a>
-                <a href="">
-                    <img src="{{ url_for('static', filename='nav-icons/share-icon.svg') }}" alt="Share">
-                </a>
-                <a href="">
-                    <img src="{{ url_for('static', filename='nav-icons/settings-icon.svg') }}" alt="Settings">
-                </a>
-            </nav>
-        </footer>
-        
-     </div>   
+    <footer class="app-footer">
+        <nav class="bottom-nav">
+            <a href="{{ url_for('home') }}">
+                <img src="{{ url_for('static', filename='nav-icons/home-icon.svg') }}" alt="Home">
+            </a>
+            <a href="{{ url_for('display') }}">
+                <img src="{{ url_for('static', filename='nav-icons/entries-icon2.svg') }}" alt="Entries">
+            </a>
+            <a href="{{ url_for('profile.profile') }}">
+                <img src="{{ url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="Profile">
+            </a>
+            <a href="">
+                <img src="{{ url_for('static', filename='nav-icons/share-icon.svg') }}" alt="Share">
+            </a>
+            <a href="">
+                <img src="{{ url_for('static', filename='nav-icons/settings-icon.svg') }}" alt="Settings">
+            </a>
+        </nav>
+    </footer>
+    
+    
 </body>
 </html>

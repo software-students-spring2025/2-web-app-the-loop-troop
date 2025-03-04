@@ -20,34 +20,6 @@ load_dotenv(override=True)
 # global ref to db
 db = None
 
-################ hardcoded fake data to test stats. this code should be removed
-################ after the journal entries db is set up
-fake_entries = [
-    {
-        "_id": ObjectId(),
-        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
-        "content": "Today was a peaceful day. I reflected on my journey.",
-        "word_count": 10,
-        "date_created": datetime(2025, 2, 28, 14, 30, tzinfo=timezone.utc),
-    },
-    {
-        "_id": ObjectId(),
-        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
-        "content": "Wrote some poetry. Feeling inspired.",
-        "word_count": 7,
-        "date_created": datetime(2025, 3, 1, 9, 15, tzinfo=timezone.utc),
-    },
-    {
-        "_id": ObjectId(),
-        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
-        "content": "Late night journaling. So many thoughts swirling.",
-        "word_count": 9,
-        "date_created": datetime(2025, 3, 1, 23, 45, tzinfo=timezone.utc),
-    }
-]
-
-################ 
-
 def create_app():
     """
     Create and configure the Flask application.
@@ -154,7 +126,7 @@ def create_app():
         return render_template("display_all.html", entries=all_entries_)
     @app.route("/delete/<entryId>", methods=["DELETE"])
     def delete(entryId):
-        delete_entry(entryId)
+        delete_entry(entryId, username=current_user.username)
         return 'Success!', 200
     @app.route("/update/<entryId>", methods=["GET"])
     def update_screen(entryId): 
@@ -163,12 +135,9 @@ def create_app():
     @app.route("/update/<entryId>", methods=["POST"])
     def update(entryId):
         content=request.form.get('entry')
-        update_entry(entryId, content)
+        update_entry(entryId, content, username=current_user.username)
         return redirect(url_for("display"))
         
-    @app.route("/profile")
-    def profile():
-        return render_template("profile.html")    
     app.register_blueprint(profile_bp)
     
     @app.errorhandler(Exception)

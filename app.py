@@ -9,9 +9,12 @@ from flask_login import LoginManager, UserMixin, current_user, login_required
 from auth import auth_bp
 from profilestats import profile_bp
 
+from helpers.delete_entry import delete_entry
 from helpers.add_entry import add_entry
 from helpers.get_user import get_user
-
+from helpers.get_all_entries import get_all_entries
+from helpers.get_entry_content import get_entry_content
+from helpers.update_entry import update_entry
 load_dotenv(override=True)
 
 # global ref to db
@@ -140,7 +143,29 @@ def create_app():
         add_entry(entry,current_user.username) # CRITICAL
         username = current_user.username
         return render_template("journal_entry2.html", submitted=True, username=current_user.username)
-          
+    
+    @app.route("/display")
+    def display():
+        all_entries = get_all_entries()
+        all_entries_ = []
+        for document in all_entries:
+            document["_id"] = str(document["_id"])
+            all_entries_.append(document)
+        return render_template("display_all.html", entries=all_entries_)
+    @app.route("/delete/<entryId>", methods=["DELETE"])
+    def delete(entryId):
+        delete_entry(entryId)
+        return 'Success!', 200
+    @app.route("/update/<entryId>", methods=["GET"])
+    def update_screen(entryId): 
+        return render_template("edit_journal_entry.html", entry_id=entryId, existing_text=get_entry_content(entryId))
+    
+    @app.route("/update/<entryId>", methods=["POST"])
+    def update(entryId):
+        content=request.form.get('entry')
+        update_entry(entryId, content)
+        return redirect(url_for("display"))
+        
     @app.route("/profile")
     def profile():
         return render_template("profile.html")    

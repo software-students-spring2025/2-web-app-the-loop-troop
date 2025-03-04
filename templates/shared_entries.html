@@ -6,7 +6,7 @@
   <title>Shared Entries</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <style>
-    /* Replicate the box styling from display_all.html */
+    /* replicated the box styling from display_all.html */
     .container-boxes {
       display: flex;
       flex-wrap: wrap;
@@ -24,11 +24,19 @@
     .box p {
       margin: 5px 0;
     }
+    .search-form {
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Global Feed</h1>
+    <!-- Search form to filter shared entries by username -->
+    <form class="search-form" method="GET" action="{{ url_for('shared_entries') }}">
+        <input type="text" name="username" placeholder="Search by username" value="{{ request.args.get('username', '') }}">
+        <button type="submit">Search</button>
+    </form>
     <div class="container-boxes">
       {% for entry in entries %}
         <div class="box" id="box-{{ entry._id }}">

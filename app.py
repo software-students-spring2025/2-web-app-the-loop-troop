@@ -167,11 +167,17 @@ def create_app():
     @app.route("/shared_entries")
     @login_required
     def shared_entries():
-        shared = list(db.journalEntries.find({"is_shared": True}))
-        # Convert ObjectId to string for each entry
+        # Get the search query for username
+        search_username = request.args.get("username", "").strip()
+        query = {"is_shared": True}
+        if search_username:
+            # For partial, case-insensitive search use a regex:
+            query["username"] = {"$regex": search_username, "$options": "i"}
+        shared = list(db.journalEntries.find(query))
         for entry in shared:
             entry["_id"] = str(entry["_id"])
         return render_template("shared_entries.html", entries=shared)
+
     
     @app.errorhandler(Exception)
     def handle_error(e):

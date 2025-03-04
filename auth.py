@@ -84,7 +84,7 @@ def login():
             login_user(user)
             # store the app's current start marker session
             session['app_start'] = current_app.config['APP_START']
-            flash("bye bye")
+            flash("Thank you for using our Journal App!")
             return redirect(url_for("auth.dashboard"))
         else:
             flash("Oops..invalid credentials, my friend, try again.")

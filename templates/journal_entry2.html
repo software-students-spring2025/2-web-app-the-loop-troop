@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Welcome to Your Digital Journal!</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script>
         let timer;
         let seconds = 0, minutes = 0, hours = 0;
@@ -37,21 +37,23 @@
     </script>
 </head>
 <body>
-    <h1>Start your entry for today!</h1>    
-    
-    <form action="/submit_entry" method="POST">
-        <label for="entry"> Welcome, {{username}}:</label><br>
-        <textarea id="entry" name="entry" rows="10" cols="50" placeholder="Write your thoughts here..."></textarea><br>
-        <button type="submit">Submit</button>
-    </form>
+    <div class="container">
+        <h1>Start your entry for today!</h1>    
+        
+        <form action="/submit_entry" method="POST">
+            <label for="entry"> Welcome, {{username}}:</label><br>
+            <textarea id="entry" name="entry" rows="10" cols="50" placeholder="Write your thoughts here..."></textarea><br>
+            <button type="submit">Submit</button>
+        </form>
 
-    {% if submitted %}
-    <h3 style="color: green;">Submission Success!</h3>
-    {% endif %}
+        {% if submitted %}
+        <h3 style="color: green;">Submission Success!</h3>
+        {% endif %}
 
-    <h2>Timer: <span id="timer">00:00:00</span></h2>
-    <button id="startStopButton" onclick="startStopTimer()">Start</button>
-    
-    {% include 'footer.html' %}  
+        <h2>Timer: <span id="timer">00:00:00</span></h2>
+        <button id="startStopButton" onclick="startStopTimer()">Start</button>
+        
+        {% include 'footer.html' %}  
+    </div>
 </body>
 </html>

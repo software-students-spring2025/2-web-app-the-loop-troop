@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to Your Digital Journal!</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+    <h1>Edit your entry</h1>    
+    
+    <form action="/update/{{ entry_id }}" method="POST">
+        <label for="entry"> Welcome, User:</label><br>
+        <textarea id="entry" name="entry" rows="10" cols="50">{{ existing_text }}</textarea><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    {% include 'footer.html' %}  
+
+</body>
+
+</html>

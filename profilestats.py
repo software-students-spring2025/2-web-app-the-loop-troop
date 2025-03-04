@@ -1,44 +1,24 @@
 import os
-from datetime import datetime, timezone
-from flask import Blueprint, render_template, jsonify
+from datetime import datetime, timezone, timedelta
+from flask import Blueprint, render_template, jsonify, request
 from flask_login import login_required, current_user
 from bson.objectid import ObjectId
 import plotly.graph_objects as go
+from pymongo import MongoClient
+from dotenv import load_dotenv
+
+from collections import defaultdict
+
+load_dotenv(override=True)
+
+cxn = MongoClient(os.getenv("MONGO_URI"))
+db = cxn[os.getenv("MONGO_DBNAME")]
+entries_collection = db["journalEntries"]
 
 profile_bp = Blueprint("profile", __name__)
 
-################ hardcoded fake data to test stats. this code should be removed
-################ after the journal entries db is set up
-fake_entries = [
-    {
-        "_id": ObjectId(),
-        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
-        "content": "Today was a peaceful day. I reflected on my journey.",
-        "word_count": 10,
-        "date_created": datetime(2025, 2, 28, 14, 30, tzinfo=timezone.utc),
-    },
-    {
-        "_id": ObjectId(),
-        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
-        "content": "Wrote some poetry. Feeling inspired.",
-        "word_count": 7,
-        "date_created": datetime(2025, 3, 1, 9, 15, tzinfo=timezone.utc),
-    },
-    {
-        "_id": ObjectId(),
-        "user_id": ObjectId("65f23c8e2d4a4b3a1a123456"),
-        "content": "Late night journaling. So many thoughts swirling.",
-        "word_count": 9,
-        "date_created": datetime(2025, 3, 2, 23, 45, tzinfo=timezone.utc),
-    }
-]
-
-################ 
-
 @profile_bp.route("/profile")
 @login_required
-
-
 def profile():
     now = datetime.now(timezone.utc) # convert utc to offset-aware type
     join_date = current_user.join_date.replace(tzinfo=timezone.utc)
@@ -53,7 +33,15 @@ def profile():
     else:
         avg_words_per_day = 0
 
-    current_user.user_entries = fake_entries
+    print(days_spent_writing, avg_words_per_day)
+    print(f"DEBUG: days_spent_writing = {days_spent_writing}, avg_words_per_day = {avg_words_per_day}")
+
+
+    user_entries = list(entries_collection.find({"username": current_user.username}))
+
+    current_user.user_entries =  user_entries
+
+    print(days_spent_writing, avg_words_per_day)
 
     return render_template("profile.html", current_user=current_user, 
                             days_spent_writing=days_spent_writing, 
@@ -65,63 +53,79 @@ def profile():
 def stats():
     return render_template("stats.html", current_user=current_user)
 
-
 @profile_bp.route("/profile/graph")
 @login_required
 def profile_graph():
-    
-    # get the current date
-    now = datetime.now(timezone.utc)
+    try:
 
-    # user_entries = current_user.user_entries
-    user_entries = fake_entries
+        week_offset = int(request.args.get("week_offset", 0))
 
-    if not user_entries:
-        print("No entries found at all!")
-        return jsonify({"error": "Not enough data to generate a graph."})
+        # get the cur date and compute start of the reqd week
+        now = datetime.now(timezone.utc)
+        start_of_week = (now - timedelta(days=now.weekday())) + timedelta(weeks=week_offset)
 
-    # Filter journal entries to only include entries from the last 7 days
-    # recent_entries = [
-    #     entry for entry in current_user.user_entries
-    #     if (now - entry["date_created"]).days <= 7
-    # ]
+        user_entries = list(db.journalEntries.find({"username": current_user.username}))
 
-    # if not recent_entries:
-    #     print("⚠️ No entries in the last 7 days!")
-    #     return jsonify({"error": "Not enough data to generate a graph."})
-    
+        if not user_entries:
+            print("No entries found at all!")
+            return jsonify({"error": "Not enough data to generate a graph."})
 
-    # convert fake_entries to x (dates) and y (word counts)
-    x_dates = [entry["date_created"].strftime("%Y-%m-%d") for entry in fake_entries]
-    y_words = [entry["word_count"] for entry in fake_entries]
+        # sum word counts per day
+        entries_dict = {}
 
+        for entry in user_entries:
+            if "date_created" not in entry:
+                print(f"Skipping entry, missing 'date_created': {entry}")
+                continue  # skip invalid entries
 
-    graph = go.Figure()
+            # convert to datetime if it's stored as a string
+            if isinstance(entry["date_created"], str):
+                entry["date_created"] = datetime.fromisoformat(entry["date_created"])
 
-    graph.add_trace(go.Bar(
-        x=x_dates, 
-        y=y_words, 
-        marker_color="black",  
-        text=y_words, 
-        textposition="inside", 
-        name="Words Written"
-    ))
+            date_str = entry["date_created"].strftime("%Y-%m-%d")
+            entries_dict[date_str] = entries_dict.get(date_str, 0) + entry["word_count"]
 
-    graph.update_layout(
-        title="Words by Week",
-        title_x=0.0, 
-        xaxis_title="",
-        yaxis_title="",
-        xaxis=dict(tickformat="%b %d", tickmode="array", tickvals=x_dates),  
-        yaxis=dict(showgrid=False, showticklabels=False),
-        plot_bgcolor="#D3D3D3",  
-        font=dict(size=10, color="black"),
-        margin=dict(t=50, b=40, l=20, r=20),
-        height=400,
-        bargap=0.2,  
-        showlegend=False,
-        width=None,
-        autosize=True,
+        # make sure all days of the week are included
+        x_dates = []
+        y_words = []
+        for i in range(7):  # go thru 7 days
+            date = (start_of_week + timedelta(days=i)).strftime("%Y-%m-%d")
+            x_dates.append(date)
+            y_words.append(entries_dict.get(date, 0))  # default is 0 if no entries
+
+        graph = go.Figure()
+
+        graph.add_trace(go.Bar(
+            x=x_dates, 
+            y=y_words, 
+            marker_color="black",  
+            text=y_words, 
+            textposition="inside", 
+            name="Words Written"
+        ))
+
+        graph.update_layout(
+            title="Words by Week",
+            title_x=0.0, 
+            xaxis_title="",
+            yaxis_title="",
+            xaxis=dict(
+                tickformat="%b %d", 
+                tickmode="array", 
+                tickvals=x_dates
+            ),  
+            yaxis=dict(showgrid=False, showticklabels=False),
+            plot_bgcolor="#D3D3D3",  
+            font=dict(size=10, color="black"),
+            margin=dict(t=50, b=40, l=20, r=20),
+            height=400,
+            bargap=0.2,  
+            showlegend=False,
+            autosize=True,
         )
 
-    return jsonify(graph.to_json())  # return JSON data for frontend rendering
+        return jsonify(graph.to_json()) # return JSON data for frontend rendering
+
+    except Exception as e:
+        print(f"Graph Error: {e}")  # log any errors for debugging
+        return jsonify({"error": "An error occurred while generating the graph."})

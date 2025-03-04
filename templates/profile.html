@@ -27,6 +27,7 @@
             you have written {{ current_user.user_stats["total_entries"] }} entries 
             and {{ current_user.user_stats["total_words"] }} words
             <br>
+            
             since you joined us on {{ current_user.join_date.strftime("%B %d, %Y") }}
 
             <br><br>
@@ -41,28 +42,64 @@
         </p>
         <div>
             <h3>your story at a glance</h3>
+
+            <button id="prev-week">← Previous Week</button>
+            <button id="next-week" style="display: none;">Next Week →</button>
+
+
             <div id="graph-container">
-                <p id="no-data-message" style="display: none; color: red;">Sorry, not enough data to show.</p>
+                <p id="no-data-message" style="display: none; color: gray;">Start writing to get data!</p>
                 <div id="plotly-graph"></div>
             </div>
             <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
             <script>
-                fetch("/profile/graph")
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            document.getElementById("no-data-message").style.display = "block";
-                        } else {
-                            Plotly.newPlot("plotly-graph", JSON.parse(data).data, JSON.parse(data).layout, { displayModeBar: false,  staticPlot: true});
-                        }
-                    })
-                    .catch(error => console.error("Error loading graph:", error));
-
-            window.addEventListener('resize', function() {
-                Plotly.Plots.resize('graph');
-            });
+                let weekOffset = 0;
+            
+                function loadGraph() {
+                    fetch(`/profile/graph?week_offset=${weekOffset}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                document.getElementById("no-data-message").style.display = "block";
+                                document.getElementById("plotly-graph").innerHTML = ""; // clear/reset the graph
+                            } else {
+                                document.getElementById("no-data-message").style.display = "none";
+                                Plotly.newPlot("plotly-graph", JSON.parse(data).data, JSON.parse(data).layout, {
+                                    displayModeBar: false,
+                                    staticPlot: true
+                                });
+                            }
+                            // hide the nxt wk button if we're on or ahead of the current week
+                            if (weekOffset >= 0) {
+                                document.getElementById("next-week").style.display = "none";
+                            } else {
+                                document.getElementById("next-week").style.display = "inline-block";
+                            }
+                        })
+                        .catch(error => console.error("Error loading graph:", error));
+                }
+            
+                document.getElementById("prev-week").addEventListener("click", function () {
+                    weekOffset--;  // go one week back
+                    loadGraph();
+                });
+            
+                document.getElementById("next-week").addEventListener("click", function () {
+                    if (weekOffset < 0) {
+                        weekOffset++;  // go one week forward
+                        loadGraph();
+                    }
+                });
+            
+                window.addEventListener('resize', function () {
+                    Plotly.Plots.resize('plotly-graph');
+                });
+            
+                loadGraph();
             </script>
+            
+            
             <a href="{{url_for ('profile.stats')}}" id="see-more-stats">see more...</a>
         </div>
 

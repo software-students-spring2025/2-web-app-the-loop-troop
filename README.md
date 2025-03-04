@@ -2,11 +2,11 @@
 
 ## Product vision statement
 
-A digital journal app that makes it easy to write, organize, and share your thoughts, helping you stay creative and productive.
+A **Digital Journal App** that makes it easy to write, organize, and share your thoughts, helping you stay creative and productive. It let's you edit, delete, and share your entries with other users. It also provides stats about your wordcount, so that you could keep track of your writing progresss!
 
 ## User stories
 
-[User Stories](https://github.com/software-students-spring2025/2-web-app-the-loop-troop/issues?q=is%3Aissue%20)  
+[User Stories](https://github.com/software-students-spring2025/2-web-app-the-loop-troop/issues?q=is%3Aissue%20state%3Aclosed)  
 
 ## Steps necessary to run the software
 

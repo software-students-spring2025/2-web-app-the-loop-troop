@@ -15,6 +15,8 @@ from helpers.get_user import get_user
 from helpers.get_all_entries import get_all_entries
 from helpers.get_entry_content import get_entry_content
 from helpers.update_entry import update_entry
+from helpers.share_entry import share_entry
+
 load_dotenv(override=True)
 
 # global ref to db
@@ -126,14 +128,17 @@ def create_app():
         username = current_user.username
         return render_template("journal_entry2.html", submitted=True, username=current_user.username)
     
+
     @app.route("/display")
+    @login_required
     def display():
-        all_entries = get_all_entries()
-        all_entries_ = []
-        for document in all_entries:
-            document["_id"] = str(document["_id"])
-            all_entries_.append(document)
-        return render_template("display_all.html", entries=all_entries_)
+        # Fetch only entries that belong to the current user
+        user_entries = list(db.journalEntries.find({"username": current_user.username}))
+        for entry in user_entries:
+            entry["_id"] = str(entry["_id"])
+        return render_template("display_all.html", entries=user_entries)
+
+
     @app.route("/delete/<entryId>", methods=["DELETE"])
     def delete(entryId):
         delete_entry(entryId, username=current_user.username)
@@ -147,8 +152,26 @@ def create_app():
         content=request.form.get('entry')
         update_entry(entryId, content, username=current_user.username)
         return redirect(url_for("display"))
+    
+    @app.route("/share/<entryId>", methods=["POST"])
+    @login_required
+    def share(entryId):
+        success, message = share_entry(entryId, current_user.username)
+        if success:
+            return "Success!", 200
+        else:
+            return message, 400
         
     app.register_blueprint(profile_bp)
+
+    @app.route("/shared_entries")
+    @login_required
+    def shared_entries():
+        shared = list(db.journalEntries.find({"is_shared": True}))
+        # Convert ObjectId to string for each entry
+        for entry in shared:
+            entry["_id"] = str(entry["_id"])
+        return render_template("shared_entries.html", entries=shared)
     
     @app.errorhandler(Exception)
     def handle_error(e):

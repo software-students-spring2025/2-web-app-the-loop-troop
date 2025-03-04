@@ -17,11 +17,11 @@
             <a href="{{ url_for('profile.profile') }}">
                 <img src="{{ url_for('static', filename='nav-icons/profile-icon.svg') }}" alt="Profile">
             </a>
-            <a href="">
+            <a href="{{ url_for('shared_entries') }}">
                 <img src="{{ url_for('static', filename='nav-icons/share-icon.svg') }}" alt="Share">
             </a>
             <a href="">
-                <img src="{{ url_for('static', filename='nav-icons/search-icon.svg') }}" alt="Settings">
+                <img src="{{ url_for('static', filename='nav-icons/search-icon.svg') }}" alt="Search">
             </a>
         </nav>
     </footer>

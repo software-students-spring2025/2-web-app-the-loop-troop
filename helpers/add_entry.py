@@ -20,7 +20,8 @@ def add_entry(entry, username):
         "tag": "Some Tag",
         "username": username,
         "word_count": word_count,
-        "date_created": datetime.now(timezone.utc)
+        "date_created": datetime.now(timezone.utc),
+        "is_shared": False
     }
 
     print(f"DEBUG: {new_entry}")

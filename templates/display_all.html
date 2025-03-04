@@ -45,12 +45,16 @@
             background-color: red;
         }
         .update-btn {
-            background-color: blue;
+            background-color: green;
+        }
+        .share-btn {
+            background-color: #007BFF; 
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <h1>This is the list of your entries</h1>
         {% for entry in entries %}
             <div class="box" id="box-{{ entry._id }}">
                 <p><strong>ID:</strong> {{ entry._id }}</p>
@@ -62,6 +66,13 @@
                 <div class="actions">
                     <button class="action-btn delete-btn" onclick="deleteEntry('{{ entry._id }}')">X</button>
                     <button class="action-btn update-btn" onclick="updateEntry('{{ entry._id }}')">✏️</button>
+                    {% if not entry.is_shared %}
+                        <button class="action-btn share-btn" onclick="shareEntry('{{ entry._id }}')">
+                        <img src="{{ url_for('static', filename='nav-icons/share-icon.svg') }}" alt="Share">
+                        </button>
+                    {% else %}
+                        <span style="color: green;">Shared</span>
+                    {% endif %}
                 </div>
             </div>
         {% endfor %}
@@ -78,6 +89,18 @@
         // window.location.href = `/update/${entryId}`;
         window.location.href = `/update/${entryId}`
     }
+    function shareEntry(entryId) {
+        fetch(`/share/${entryId}`, { method: 'POST' })
+            .then(response => {
+                if(response.ok){
+                    window.location.reload(); // reload to update the UI
+                } else {
+                    response.text().then(text => alert(text));
+                }
+            })
+            .catch(error => console.error("Error sharing entry:", error));
+    }
+
     </script>
     {% include 'footer.html' %}
 

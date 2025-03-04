@@ -99,4 +99,4 @@ def logout():
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", current_user=current_user)
+    return render_template("journal_entry2.html", current_user=current_user)

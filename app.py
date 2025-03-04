@@ -113,11 +113,20 @@ def create_app():
 
     @app.before_request
     def force_signup():
-        # if a user is authenticated and it trying to access anyting other than signup/login, log them out
-        allowed_endpoints = {"auth.signup", "auth.login", "static"}
+        # Include endpoints that should be accessible to logged-in users
+        allowed_endpoints = {
+            "auth.signup",
+            "auth.login",
+            "static",
+            "auth.dashboard",  # For the dashboard route in auth
+            "home",            # For your home route
+            "profile",         # For the profile page
+            "submit_entry"     # For submitting journal entries
+        }
         if current_user.is_authenticated and request.endpoint not in allowed_endpoints:
             logout_user()
             return redirect(url_for("auth.signup"))
+
 
 
     app.register_blueprint(auth_bp) # All routes in auth.py should be active now!

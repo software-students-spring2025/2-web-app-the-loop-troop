@@ -11,7 +11,9 @@ from profilestats import profile_bp
 
 from helpers.add_entry import add_entry
 from helpers.get_user import get_user
-
+from helpers.get_all_entries import get_all_entries
+from helpers.get_entry_content import get_entry_content
+from helpers.update_entry import update_entry
 load_dotenv(override=True)
 
 # global ref to db
@@ -140,6 +142,15 @@ def create_app():
         add_entry(entry,current_user.username) # CRITICAL
         username = current_user.username
         return render_template("journal_entry2.html", submitted=True, username=current_user.username)
+    
+    @app.route("/display")
+    def display():
+        all_entries = get_all_entries()
+        all_entries_ = []
+        for document in all_entries:
+            document["_id"] = str(document["_id"])
+            all_entries_.append(document)
+        return render_template("display_all.html", entries=all_entries_)
           
     @app.route("/profile")
     def profile():

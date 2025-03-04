@@ -1,3 +1,17 @@
+/* Mobile-friendly container */
+.container {
+    max-width: 400px; 
+    margin: 0 auto;   
+    padding: 10px;
+}
+
+form, input, textarea, button {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 10px; 
+}
+
+
 h1, h2, h3, h4, h5, h6 {
     cursor: default;
 }

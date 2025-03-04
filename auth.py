@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson.objectid import ObjectId
@@ -82,6 +82,8 @@ def login():
                 user_stats=userDoc.get("user_stats")
             )
             login_user(user)
+            # store the app's current start marker session
+            session['app_start'] = current_app.config['APP_START']
             flash("Nice, you are loggen in!")
             return redirect(url_for("auth.dashboard"))
         else:
@@ -99,4 +101,4 @@ def logout():
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", current_user=current_user)
+    return render_template("journal_entry2.html", current_user=current_user)
